@@ -1,0 +1,33 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TryOnsModule = void 0;
+const common_1 = require("@nestjs/common");
+const bullmq_1 = require("@nestjs/bullmq");
+const try_ons_service_js_1 = require("./try-ons.service.js");
+const try_ons_controller_js_1 = require("./try-ons.controller.js");
+let TryOnsModule = class TryOnsModule {
+};
+exports.TryOnsModule = TryOnsModule;
+exports.TryOnsModule = TryOnsModule = __decorate([
+    (0, common_1.Module)({
+        imports: [
+            bullmq_1.BullModule.registerQueue({
+                name: 'try-on-generation',
+                defaultJobOptions: {
+                    removeOnComplete: 50,
+                    removeOnFail: 20,
+                },
+            }),
+        ],
+        controllers: [try_ons_controller_js_1.TryOnsController],
+        providers: [try_ons_service_js_1.TryOnsService],
+        exports: [try_ons_service_js_1.TryOnsService],
+    })
+], TryOnsModule);
+//# sourceMappingURL=try-ons.module.js.map

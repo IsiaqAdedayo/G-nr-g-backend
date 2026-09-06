@@ -1,0 +1,253 @@
+// Gúnrégé Backend — Prisma Schema
+// Spec §22: Core Data Relationship
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── User & Auth ────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String?  // hashed; nullable for guest users
+  unit      String   @default("metric") // "metric" | "imperial"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile       UserProfile?
+  likeness      VirtualLikeness?
+  looks         Look[]
+  tryOnJobs     TryOn[]
+}
+
+// ─── Profile (§22 — nested under User) ──────────────────────────────────────
+
+model UserProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Body shape — optional matching signal (§3)
+  bodyShape String? // "rectangle" | "hourglass" | "pear" | "apple" | "athletic"
+
+  // Links to nested profiles
+  body        BodyProfile?
+  appearance  AppearanceProfile?
+}
+
+model BodyProfile {
+  id          String @id @default(uuid())
+  profileId   String @unique
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  // All stored internally as metric (cm / kg) — §3
+  heightCm    Float
+  bustCm      Float
+  waistCm     Float
+  hipsCm      Float
+  shoulderCm  Float?  // optional
+  inseamCm    Float?  // optional
+  weightKg    Float?  // optional
+}
+
+model AppearanceProfile {
+  id           String @id @default(uuid())
+  profileId    String @unique
+  profile      UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  // Visual matching signals — §3 (categorical filtering)
+  skinTone       String  // hex colour swatch
+  skinToneName   String
+  hairColour     String
+  ageRange       String  // "18-25" | "26-35" | "36-45" | "46-55" | "55+"
+  build          String  // "slim" | "average" | "athletic" | "full" | "plus"
+}
+
+// ─── Model Presets (seed data — §3, §31) ───────────────────────────────────
+
+model ModelPreset {
+  id          String @id @default(uuid())
+  name        String
+
+  heightCm    Float
+  bustCm      Float
+  waistCm     Float
+  hipsCm      Float
+  shoulderCm  Float
+  inseamCm    Float
+
+  skinTone       String  // hex
+  skinToneName   String
+  hairColour     String
+  ageRange       String
+  build          String
+  gender         String  // "feminine" | "masculine" | "androgynous"
+
+  baseImg        String  // URL or path
+  description    String
+
+  createdAt DateTime @default(now())
+
+  // Reverse relations
+  likenesses VirtualLikeness[]
+}
+
+// ─── Virtual Likeness (§3) ─────────────────────────────────────────────────
+
+model VirtualLikeness {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  matchedModelId      String
+  matchedModel        ModelPreset @relation(fields: [matchedModelId], references: [id])
+
+  // Persisted matching results — §3, §9.1
+  matchDistance       Float
+  matchConfidenceTier String  // "close" | "moderate" | "loose"
+
+  // User's measurements at time of match
+  heightCm Float
+  bustCm   Float
+  waistCm  Float
+  hipsCm   Float
+  shoulderCm Float?
+  inseamCm   Float?
+
+  // Appearance snapshot
+  skinTone     String
+  hairColour   String
+  ageRange     String
+  build        String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tryOnJobs TryOn[]
+  looks     Look[]
+}
+
+// ─── Brands (§4.1 — seeded server-side only) ──────────────────────────────
+
+model Brand {
+  id        String @id @default(uuid())
+  name      String @unique
+  logoUrl   String?
+  website   String?
+
+  garments  Garment[]
+}
+
+// ─── Garments (§4, §5 — seeded, never accepted from client) ───────────────
+
+model Garment {
+  id          String @id @default(uuid())
+  brandId     String
+  brand       Brand  @relation(fields: [brandId], references: [id])
+
+  name        String
+  description String
+  price       Int    // stored in smallest currency unit (kobo/cents)
+  currency    String @default("NGN")
+  category    String // "Tops" | "Dresses" | "Trousers" | "Jeans" | "Outerwear" | "Shoes" | "Accessories" | "Sets"
+
+  images      String[] // array of URLs
+  colors      Json     // [{ name, hex }]
+  sizes       String[] // ["XS", "S", "M", "L", "XL"]
+
+  fit         String   // "slim" | "regular" | "relaxed" | "oversized"
+  material    String
+  stretch     String   // "none" | "low" | "medium" | "high"
+
+  // Category-specific measurements (§5)
+  garmentMeasurements Json   // TopMeasurements | TrouserMeasurements | DressMeasurements
+
+  purchaseUrl  String?
+  fittedImg    String?  // pre-fitted reference image
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tryOnJobs TryOn[]
+  looks     Look[]
+}
+
+// ─── Try-On Jobs (§6) ─────────────────────────────────────────────────────
+
+model TryOn {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  likenessId String
+  likeness   VirtualLikeness @relation(fields: [likenessId], references: [id], onDelete: Cascade)
+
+  garmentId String
+  garment   Garment @relation(fields: [garmentId], references: [id])
+
+  // Job lifecycle — §6, §6.1
+  status     String  @default("queued") // "queued" | "processing" | "completed" | "failed"
+  resultUrl  String? // try-on result image URL
+
+  // Caching input signature — §27
+  inputSignature String @unique // likenessVersion + garmentVersion + aiModelVersion + renderConfigVersion
+
+  // Error tracking — §26
+  error          String?
+  provider       String?
+  providerModel  String?
+  latencyMs      Int?
+
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  fitAnalysis  FitAnalysis?
+
+  looks Look[]
+}
+
+// ─── Fit Analysis (§9, §10) ───────────────────────────────────────────────
+
+model FitAnalysis {
+  id      String @id @default(uuid())
+  tryOnId String @unique
+  tryOn   TryOn  @relation(fields: [tryOnId], references: [id], onDelete: Cascade)
+
+  // Per-zone labels
+  labels  Json  // FitLabel[] — [{ zone, label, detail, garmentEaseCm, matchErrorCm }]
+
+  // §9.1 — qualified when match confidence is moderate/loose
+  matchConfidenceTier String
+  qualifiedMessage    String?
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Looks (§11) ──────────────────────────────────────────────────────────
+
+model Look {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  likenessId String
+  likeness   VirtualLikeness @relation(fields: [likenessId], references: [id], onDelete: Cascade)
+
+  garmentId String
+  garment   Garment @relation(fields: [garmentId], references: [id])
+
+  tryOnId   String?
+  tryOn     TryOn?  @relation(fields: [tryOnId], references: [id])
+
+  resultImg String? // try-on result image
+
+  createdAt DateTime @default(now())
+
+  @@unique([likenessId, garmentId])
+}
