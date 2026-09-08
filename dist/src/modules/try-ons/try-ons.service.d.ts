@@ -77,9 +77,9 @@ export declare class TryOnsService {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+            matchedModelId: string;
             matchDistance: number;
             matchConfidenceTier: string;
-            matchedModelId: string;
         };
         fitAnalysis: {
             id: string;

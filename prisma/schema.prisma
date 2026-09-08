@@ -1,5 +1,8 @@
 // Gúnrégé Backend — Prisma Schema
 // Spec §22: Core Data Relationship
+// npx prisma migrate dev --name init
+// npx prisma generate
+
 
 generator client {
   provider = "prisma-client-js"

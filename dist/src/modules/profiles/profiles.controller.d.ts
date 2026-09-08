@@ -67,9 +67,9 @@ export declare class ProfilesController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+            matchedModelId: string;
             matchDistance: number;
             matchConfidenceTier: string;
-            matchedModelId: string;
         }) | null;
     } & {
         id: string;

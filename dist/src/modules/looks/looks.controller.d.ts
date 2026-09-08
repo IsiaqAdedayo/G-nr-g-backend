@@ -59,9 +59,9 @@ export declare class LooksController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+            matchedModelId: string;
             matchDistance: number;
             matchConfidenceTier: string;
-            matchedModelId: string;
         };
     } & {
         id: string;
@@ -128,9 +128,9 @@ export declare class LooksController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
+            matchedModelId: string;
             matchDistance: number;
             matchConfidenceTier: string;
-            matchedModelId: string;
         };
     } & {
         id: string;

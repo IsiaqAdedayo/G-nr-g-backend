@@ -40,9 +40,9 @@ export declare class LikenessService {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
+        matchedModelId: string;
         matchDistance: number;
         matchConfidenceTier: string;
-        matchedModelId: string;
     }>;
     update(userId: string, data: {
         matchedModelId?: string;
@@ -81,8 +81,8 @@ export declare class LikenessService {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
+        matchedModelId: string;
         matchDistance: number;
         matchConfidenceTier: string;
-        matchedModelId: string;
     }>;
 }

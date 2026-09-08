@@ -39,9 +39,9 @@ export declare class LikenessController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
+        matchedModelId: string;
         matchDistance: number;
         matchConfidenceTier: string;
-        matchedModelId: string;
     }>;
     update(req: any, body: {
         matchedModelId?: string;
@@ -80,8 +80,8 @@ export declare class LikenessController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
+        matchedModelId: string;
         matchDistance: number;
         matchConfidenceTier: string;
-        matchedModelId: string;
     }>;
 }
