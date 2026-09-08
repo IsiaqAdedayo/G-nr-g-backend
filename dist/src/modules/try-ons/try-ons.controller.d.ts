@@ -74,9 +74,9 @@ export declare class TryOnsController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            matchedModelId: string;
             matchDistance: number;
             matchConfidenceTier: string;
+            matchedModelId: string;
         };
         fitAnalysis: {
             id: string;

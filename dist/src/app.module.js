@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const core_1 = require("@nestjs/core");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
 const bullmq_1 = require("@nestjs/bullmq");
@@ -58,6 +59,12 @@ exports.AppModule = AppModule = __decorate([
             jobs_module_js_1.JobsModule,
             ai_module_js_1.AiModule,
             uploads_module_js_1.UploadsModule,
+        ],
+        providers: [
+            {
+                provide: core_1.APP_GUARD,
+                useClass: throttler_1.ThrottlerGuard,
+            },
         ],
     })
 ], AppModule);

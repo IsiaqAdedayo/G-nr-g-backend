@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
@@ -25,9 +24,6 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
-
-  // ── Rate limiting — §25.1 ──────────────────────────────────────────────────
-  app.useGlobalGuards(app.get(ThrottlerGuard));
 
   // ── Swagger — OpenAPI documentation ────────────────────────────────────────
   const config = new DocumentBuilder()
